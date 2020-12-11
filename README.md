@@ -12,3 +12,16 @@ A well beloved tool for [federated authentication](https://github.com/venth/aws-
 exist, but if you use native AWS authentication I couldn't find it.
 
 This is a very simple tool that fetches temporary access keys for a particular profile and stores them in your ~/.aws/credentials file. So run the command, and refer to your profile (followed by `-tmp`).
+
+## Usage
+
+Usage is pretty simple, you need to know the (working!) aws profile name for which you want to fetch temporary credentials.
+
+The `role_arn` is read from the profile and temporary credentials are retrieved, and written to `~/.aws/credentials` with the same profile name, followed by `-tmp`.
+
+```bash
+$ aws-tmp-keys-fetcher -p my-profile
+Use profile my-profile with role arn:aws:iam::1111111111:role/MY_ROLE_NAME
+Enter MFA code for arn:aws:iam::0000000000000:mfa/pietje.puk:
+Temporary credentials written to /Users/pietjepuk/.aws/credentials with profile my-profile-tm
+```
