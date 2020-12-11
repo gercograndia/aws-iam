@@ -90,7 +90,7 @@ def fetch_credentials(
 def check_latest_version():
     # check for newer versions
     try:
-        is_outdated, latest_version = check_outdated('aws-iam', __version__)
+        is_outdated, latest_version = check_outdated('aws-tmp-keys-fetcher', __version__)
         if is_outdated:
             click.echo(
                 f'Your local version ({__version__}) is out of date! Latest is {latest_version}!'
