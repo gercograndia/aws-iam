@@ -38,9 +38,23 @@ from . import __version__
     '--profile', '-p',
     help='Name of profile.',
     )
+@click.option(
+    '--show', '-s',
+    help='Show credentials as export statements for setting environment variables. Default: False',
+    is_flag=True,
+    default=False
+    )
+@click.option(
+    '--reset', '-r',
+    help='Outputs commands for resetting environment variables. Default: False',
+    is_flag=True,
+    default=False
+    )
 @click.version_option(version=__version__)
 def fetch_credentials(
         profile: string,
+        show: bool,
+        reset: bool,
     ) -> int:
     """
     Fetches temporary credentials for the given profile
@@ -49,40 +63,51 @@ def fetch_credentials(
     check_latest_version()
 
     try:
-        # first get the role from the profile file
-        config = configparser.ConfigParser()
-        config_file = f"{os.path.expanduser('~')}/.aws/config"
-        config.read(config_file)
-        role_arn = config[f"profile {profile}"]["role_arn"]
+        if reset:
+            click.echo(f"unset AWS_ACCESS_KEY_ID")
+            click.echo(f"unset AWS_SECRET_ACCESS_KEY")
+            click.echo(f"unset AWS_SESSION_TOKEN")
+        else:
+            # first get the role from the profile file
+            config = configparser.ConfigParser()
+            config_file = f"{os.path.expanduser('~')}/.aws/config"
+            config.read(config_file)
+            role_arn = config[f"profile {profile}"]["role_arn"]
 
-        click.echo(f"Use profile {profile} with role {role_arn}")
+            if not show:
+                click.echo(f"Use profile {profile} with role {role_arn}")
 
-        # then assume the role
-        os.environ['AWS_PROFILE'] = profile
-        client = boto3.client('sts')
-        response = client.assume_role(
-            RoleArn=role_arn,
-            RoleSessionName='session_for',
-            DurationSeconds=3600,
-        )
+            # then assume the role
+            os.environ['AWS_PROFILE'] = profile
+            client = boto3.client('sts')
+            response = client.assume_role(
+                RoleArn=role_arn,
+                RoleSessionName='session_for',
+                DurationSeconds=3600,
+            )
 
-        # Now write it back to the credentials file
-        credentials_config = configparser.ConfigParser()
-        credentials_file = f"{os.path.expanduser('~')}/.aws/credentials"
-        credentials_config.read(credentials_file)
-        tmp_profile = f"{profile}-tmp"
-        credentials_config[tmp_profile] = {
-            'aws_access_key_id': response['Credentials']['AccessKeyId'],
-            'aws_secret_access_key': response['Credentials']['SecretAccessKey'],
-            'aws_session_token': response['Credentials']['SessionToken'],
-        }
-        with open(credentials_file, 'w') as credentials_config_file:
-            credentials_config.write(credentials_config_file)
+            # Now write it back to the credentials file
+            credentials_config = configparser.ConfigParser()
+            credentials_file = f"{os.path.expanduser('~')}/.aws/credentials"
+            credentials_config.read(credentials_file)
+            tmp_profile = f"{profile}-tmp"
+            credentials_config[tmp_profile] = {
+                'aws_access_key_id': response['Credentials']['AccessKeyId'],
+                'aws_secret_access_key': response['Credentials']['SecretAccessKey'],
+                'aws_session_token': response['Credentials']['SessionToken'],
+            }
+            with open(credentials_file, 'w') as credentials_config_file:
+                credentials_config.write(credentials_config_file)
 
-        click.secho(
-            f"Temporary credentials written to {credentials_file} with profile {tmp_profile}",
-            fg="green"
-        )
+            if show:
+                click.echo(f"export AWS_ACCESS_KEY_ID=#{response['Credentials']['AccessKeyId']}")
+                click.echo(f"export AWS_SECRET_ACCESS_KEY=#{response['Credentials']['SecretAccessKey']}")
+                click.echo(f"export AWS_SESSION_TOKEN=#{response['Credentials']['SessionToken']}")
+            else:
+                click.secho(
+                    f"Temporary credentials written to {credentials_file} with profile {tmp_profile}",
+                    fg="green"
+                )
     except Exception as e:
         click.secho(f"Exception occured: {e}", fg="red")
 

@@ -20,8 +20,36 @@ Usage is pretty simple, you need to know the (working!) aws profile name for whi
 The `role_arn` is read from the profile and temporary credentials are retrieved, and written to `~/.aws/credentials` with the same profile name, followed by `-tmp`.
 
 ```bash
-$ aws-tmp-keys-fetcher -p my-profile
+$ aws-tmp-keys-fetcher --profile my-profile
 Use profile my-profile with role arn:aws:iam::1111111111:role/MY_ROLE_NAME
 Enter MFA code for arn:aws:iam::0000000000000:mfa/pietje.puk:
 Temporary credentials written to /Users/pietjepuk/.aws/credentials with profile my-profile-tm
+```
+
+If you want to use the output to set environment variables, you can show the output and if desired use command substition to initialize your shell with it.
+
+```bash
+$ aws-tmp-keys-fetcher -p my-profile --show
+AWS_ACCESS_KEY_ID=XXXXXXXXXXXX
+AWS_SECRET_ACCESS_KEY=YYYYYYYYYYYYYYYYYY
+AWS_SESSION_TOKEN=ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+
+# Use command substitution to load these values into your environment
+$ $(aws-tmp-keys-fetcher -p my-profile --show)
+
+$ env | grep -i aws
+AWS_ACCESS_KEY_ID=XXXXXXXXXXXX
+AWS_SECRET_ACCESS_KEY=YYYYYYYYYYYYYYYYYY
+AWS_SESSION_TOKEN=ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+```
+
+or if you want to remove these credentials from your environment:
+
+```bash
+$ aws-tmp-keys-fetcher -p my-profile --reset
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_SESSION_TOKEN
+
+$ $(aws-tmp-keys-fetcher -p my-profile --reset)
 ```
