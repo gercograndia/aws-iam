@@ -73,12 +73,13 @@ def fetch_credentials(
             config_file = f"{os.path.expanduser('~')}/.aws/config"
             config.read(config_file)
             role_arn = config[f"profile {profile}"]["role_arn"]
+            source_profile = config[f"profile {profile}"]["source_profile"]
 
             if not show:
-                click.echo(f"Use profile {profile} with role {role_arn}")
+                click.echo(f"Use profile {profile} (sourced from {source_profile}) with role {role_arn}")
 
             # then assume the role
-            os.environ['AWS_PROFILE'] = profile
+            os.environ['AWS_PROFILE'] = source_profile
             client = boto3.client('sts')
             response = client.assume_role(
                 RoleArn=role_arn,
@@ -108,6 +109,12 @@ def fetch_credentials(
                     f"Temporary credentials written to {credentials_file} with profile {tmp_profile}",
                     fg="green"
                 )
+    except KeyError as ke:
+        click.secho(f"Key error occured: {ke}", fg="red")
+        click.secho(
+            "Note: this tool assumes the 'role_arn' and 'source_profile' to be present in your ~/.aws/config file.",
+            fg="red"
+        )
     except Exception as e:
         click.secho(f"Exception occured: {e}", fg="red")
 
