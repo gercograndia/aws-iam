@@ -23,7 +23,7 @@ The `role_arn` is read from the profile and temporary credentials are retrieved,
 $ aws-tmp-keys-fetcher --profile my-profile
 Use profile my-profile with role arn:aws:iam::1111111111:role/MY_ROLE_NAME
 Enter MFA code for arn:aws:iam::0000000000000:mfa/pietje.puk:
-Temporary credentials written to /Users/pietjepuk/.aws/credentials with profile my-profile-tm
+Temporary credentials written to /Users/pietjepuk/.aws/credentials with profile my-profile-tmp
 ```
 
 If you want to use the output to set environment variables, you can show the output and if desired use command substition to initialize your shell with it.
