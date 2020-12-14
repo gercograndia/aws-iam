@@ -46,10 +46,10 @@ AWS_SESSION_TOKEN=ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
 or if you want to remove these credentials from your environment:
 
 ```bash
-$ aws-tmp-keys-fetcher -p my-profile --reset
+$ aws-tmp-keys-fetcher --reset
 unset AWS_ACCESS_KEY_ID
 unset AWS_SECRET_ACCESS_KEY
 unset AWS_SESSION_TOKEN
 
-$ $(aws-tmp-keys-fetcher -p my-profile --reset)
+$ $(aws-tmp-keys-fetcher --reset)
 ```
