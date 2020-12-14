@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aws-tmp-keys-fetcher"
-version = "0.0.3"
+version = "0.0.4"
 description = "AWS temporary keys fetcher - simple command-line tool to fetch temporary aws credentials and stores them in your configs so that third party that require actual access keys can work with them."
 authors = ["Gerco Grandia <gerco.grandia@4synergy.nl>"]
 include = ["pyproject.toml"]

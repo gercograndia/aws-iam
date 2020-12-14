@@ -74,18 +74,38 @@ def fetch_credentials(
             config.read(config_file)
             role_arn = config[f"profile {profile}"]["role_arn"]
             source_profile = config[f"profile {profile}"]["source_profile"]
-
             if not show:
                 click.echo(f"Use profile {profile} (sourced from {source_profile}) with role {role_arn}")
 
             # then assume the role
             os.environ['AWS_PROFILE'] = source_profile
             client = boto3.client('sts')
-            response = client.assume_role(
-                RoleArn=role_arn,
-                RoleSessionName='session_for',
-                DurationSeconds=3600,
-            )
+
+            # Do we have MFA?
+            mfa_serial = None
+            mfa_token = None
+            try:
+                mfa_serial = config[f"profile {profile}"]["mfa_serial"]
+                mfa_token = input(f"Please enter MFA code for {mfa_serial}: ")
+            except KeyError:
+                if show:
+                    click.echo("No MFA configuration detected")
+                pass
+            
+            if mfa_serial:
+                response = client.assume_role(
+                    RoleArn=role_arn,
+                    RoleSessionName='session_for',
+                    DurationSeconds=3600,
+                    SerialNumber=mfa_serial,
+                    TokenCode=mfa_token,
+                )
+            else:
+                response = client.assume_role(
+                    RoleArn=role_arn,
+                    RoleSessionName='session_for',
+                    DurationSeconds=3600,
+                )
 
             # Now write it back to the credentials file
             credentials_config = configparser.ConfigParser()
@@ -112,9 +132,10 @@ def fetch_credentials(
     except KeyError as ke:
         click.secho(f"Key error occured: {ke}", fg="red")
         click.secho(
-            "Note: this tool assumes the 'role_arn' and 'source_profile' to be present in your ~/.aws/config file.",
+            "Note: this tool assumes the 'role_arn', 'source_profile' and 'mfa_serial' to be present in your ~/.aws/config file.",
             fg="red"
         )
+        raise
     except Exception as e:
         click.secho(f"Exception occured: {e}", fg="red")
 
